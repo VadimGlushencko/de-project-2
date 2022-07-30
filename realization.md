@@ -1,4 +1,8 @@
-#1. Создадим справочник стоимости доставки в страны shipping_country_rates
+## Реализация
+
+
+### 1. Создадим справочник стоимости доставки в страны shipping_country_rates
+```SQL
 
 DROP TABLE if EXISTS public.shipping_country_rates;
 
@@ -13,10 +17,10 @@ INSERT INTO public.shipping_country_rates
 select shipping_country, shipping_country_base_rate 
 from shipping
 group by shipping_country, shipping_country_base_rate;
+```
 
-
-#2. Создадим справочник тарифов доставки вендора по договору shipping_agreement из данных строки vendor_agreement_description
-
+### 2. Создадим справочник тарифов доставки вендора по договору shipping_agreement из данных строки vendor_agreement_description
+```SQL
 DROP TABLE if EXISTS public.shipping_agreement;
 
 CREATE TABLE public.shipping_agreement(
@@ -34,10 +38,10 @@ from (select regexp_split_to_array(vendor_agreement_description , ':+') as descr
 from shipping) as foo
 group by description
 order by 1;
+```
 
-
-#3. Создадим справочник о типах доставки shipping_transfer из строки shipping_transfer_description
-
+### 3. Создадим справочник о типах доставки shipping_transfer из строки shipping_transfer_description
+```SQL
 DROP TABLE if EXISTS public.shipping_transfer;
 CREATE TABLE public.shipping_transfer(
 transfer_type_id SERIAL NOT NULL,
@@ -54,10 +58,10 @@ from (select regexp_split_to_array(shipping_transfer_description , ':+') as desc
 from shipping) as foo
 group by 1, 2, 3
 order by 1;
+```
 
-
-#4. Создадим таблицу shipping_info с уникальными доставками shippingid и свяжите её с созданными справочниками shipping_country_rates, shipping_agreement, shipping_transfer и константной информацией о доставке shipping_plan_datetime , payment_amount , vendorid
-
+### 4. Создадим таблицу shipping_info с уникальными доставками shippingid и свяжите её с созданными справочниками shipping_country_rates, shipping_agreement, shipping_transfer и константной информацией о доставке shipping_plan_datetime , payment_amount , vendorid
+```SQL
 DROP TABLE IF EXISTS public.shipping_info;
 
 CREATE TABLE public.shipping_info(
@@ -85,10 +89,10 @@ LEFT JOIN shipping_country_rates scr ON s.shipping_country = scr.shipping_countr
 LEFT JOIN shipping_agreement sa ON s.vendor_agreement_description = sa.agreementid || ':' ||  sa.agreement_number || ':' || 
 	sa.agreement_rate :: numeric (14,3) || ':' || sa.agreement_commission :: numeric (14,3)
 ORDER BY 1;
+```
 
-
-#5. Создадим таблицу статусов о доставке shipping_status и включите туда информацию из лога shipping (status , state). Добавим туда вычислимую информацию по фактическому времени доставки shipping_start_fact_datetime, shipping_end_fact_datetime . Отразим для каждого уникального shippingid его итоговое состояние доставки
-
+### 5. Создадим таблицу статусов о доставке shipping_status и включите туда информацию из лога shipping (status , state). Добавим туда вычислимую информацию по фактическому времени доставки shipping_start_fact_datetime, shipping_end_fact_datetime . Отразим для каждого уникального shippingid его итоговое состояние доставки
+```SQL
 DROP TABLE IF EXISTS public.shipping_status;
 
 CREATE TABLE public.shipping_status(
@@ -113,10 +117,10 @@ FROM sh
 LEFT JOIN public.shipping shr ON shr.shippingid = sh.shippingid AND shr.state = 'recieved'
 LEFT JOIN public.shipping shb ON shb.shippingid = sh.shippingid AND shb.state = 'booked'
 WHERE sh.rn = 1;
+```
 
-
-#6. Создадим представление shipping_datamart на основании готовых таблиц для аналитики
-
+### 6. Создадим представление shipping_datamart на основании готовых таблиц для аналитики
+```SQL
 CREATE OR REPLACE VIEW public.shipping_datamart AS(
 SELECT si.shippingid, si.vendorid, st.transfer_type, 
 	DATE_PART('day', age(ss.shipping_end_fact_datetime ,ss.shipping_start_fact_datetime)) AS full_day_at_shipping,
@@ -133,4 +137,4 @@ LEFT JOIN shipping_status ss ON si.shippingid = ss.shippingid
 LEFT JOIN shipping_country_rates scr ON si.shipping_country_id = scr.shipping_country_id 
 LEFT JOIN shipping_agreement sa ON si.agreementid = sa.agreementid 
 );
-
+```
