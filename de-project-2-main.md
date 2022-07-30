@@ -1,4 +1,4 @@
-//1. Создадим справочник стоимости доставки в страны shipping_country_rates
+#1. Создадим справочник стоимости доставки в страны shipping_country_rates
 
 DROP TABLE if EXISTS public.shipping_country_rates;
 
@@ -15,7 +15,7 @@ from shipping
 group by shipping_country, shipping_country_base_rate;
 
 
-//2. Создадим справочник тарифов доставки вендора по договору shipping_agreement из данных строки vendor_agreement_description
+#2. Создадим справочник тарифов доставки вендора по договору shipping_agreement из данных строки vendor_agreement_description
 
 DROP TABLE if EXISTS public.shipping_agreement;
 
@@ -36,7 +36,7 @@ group by description
 order by 1;
 
 
-//3. Создадим справочник о типах доставки shipping_transfer из строки shipping_transfer_description
+#3. Создадим справочник о типах доставки shipping_transfer из строки shipping_transfer_description
 
 DROP TABLE if EXISTS public.shipping_transfer;
 CREATE TABLE public.shipping_transfer(
@@ -56,7 +56,7 @@ group by 1, 2, 3
 order by 1;
 
 
-//4. Создадим таблицу shipping_info с уникальными доставками shippingid и свяжите её с созданными справочниками shipping_country_rates, shipping_agreement, shipping_transfer и константной информацией о доставке shipping_plan_datetime , payment_amount , vendorid
+#4. Создадим таблицу shipping_info с уникальными доставками shippingid и свяжите её с созданными справочниками shipping_country_rates, shipping_agreement, shipping_transfer и константной информацией о доставке shipping_plan_datetime , payment_amount , vendorid
 
 DROP TABLE IF EXISTS public.shipping_info;
 
@@ -87,7 +87,7 @@ LEFT JOIN shipping_agreement sa ON s.vendor_agreement_description = sa.agreement
 ORDER BY 1;
 
 
-5. Создадим таблицу статусов о доставке shipping_status и включите туда информацию из лога shipping (status , state). Добавим туда вычислимую информацию по фактическому времени доставки shipping_start_fact_datetime, shipping_end_fact_datetime . Отразим для каждого уникального shippingid его итоговое состояние доставки
+#5. Создадим таблицу статусов о доставке shipping_status и включите туда информацию из лога shipping (status , state). Добавим туда вычислимую информацию по фактическому времени доставки shipping_start_fact_datetime, shipping_end_fact_datetime . Отразим для каждого уникального shippingid его итоговое состояние доставки
 
 DROP TABLE IF EXISTS public.shipping_status;
 
@@ -115,7 +115,7 @@ LEFT JOIN public.shipping shb ON shb.shippingid = sh.shippingid AND shb.state = 
 WHERE sh.rn = 1;
 
 
-6. Создадим представление shipping_datamart на основании готовых таблиц для аналитики
+#6. Создадим представление shipping_datamart на основании готовых таблиц для аналитики
 
 CREATE OR REPLACE VIEW public.shipping_datamart AS(
 SELECT si.shippingid, si.vendorid, st.transfer_type, 
